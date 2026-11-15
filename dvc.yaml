@@ -1,0 +1,12 @@
+stages:
+  train:
+    cmd: python training/train.py --data data/raw/dataset.csv --model-out models/model.joblib --metrics-out metrics.json --no-gate
+    deps:
+      - training/train.py
+      - training/pipeline_steps.py
+      - data/raw/dataset.csv
+    outs:
+      - models/model.joblib
+    metrics:
+      - metrics.json:
+          cache: false

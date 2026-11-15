@@ -1,0 +1,14 @@
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["artifacts", "mlruns", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501", "B008", "UP017", "UP035", "UP042"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning", "ignore::UserWarning"]

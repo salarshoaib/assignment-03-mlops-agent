@@ -1,0 +1,6 @@
+# Installed inside the Airflow image (mlflow-skinny = client only, avoids dependency clashes with Airflow)
+mlflow-skinny==2.22.0
+scikit-learn>=1.4
+pandas>=2.1
+joblib>=1.3
+pyyaml>=6.0

@@ -1,0 +1,31 @@
+# MLflow tracking server + Airflow 3 (standalone). Start:  docker compose up -d --build
+services:
+  mlflow:
+    build: { context: ., dockerfile: Dockerfile.mlflow }
+    ports: ["${MLFLOW_PORT:-5000}:5000"]
+    volumes: ["./mlflow-data:/mlflow"]
+    environment:
+      # Default gunicorn timeout is 30s. Under load the sync workers exceed it, gunicorn
+      # SIGKILLs them (log: "WORKER TIMEOUT ... was sent SIGKILL"), which surfaces to
+      # clients as ConnectionResetError(10054) and aborts training/agent runs.
+      GUNICORN_CMD_ARGS: "--timeout 300 --graceful-timeout 60 --workers 2"
+
+  airflow:
+    build: { context: ., dockerfile: Dockerfile.airflow }
+    command: standalone
+    depends_on: [mlflow]
+    ports: ["8080:8080"]
+    environment:
+      PROJECT_ROOT: /opt/airflow/project
+      PYTHONPATH: /opt/airflow/project
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/passwords.json
+      AIRFLOW__API_AUTH__JWT_SECRET: "dev-only-change-me-dev-only-change-me"
+    volumes:
+      - ./:/opt/airflow/project
+      # Must NOT be :ro -- SimpleAuthManager opens it with "a+" (OSError Errno 30 on :ro)
+      - ./docker/airflow_passwords.json:/opt/airflow/passwords.json

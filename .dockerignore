@@ -1,0 +1,13 @@
+.git
+.venv
+mlruns
+mlflow-data
+artifacts
+logs
+tests
+data
+dags
+docs
+*.md
+!requirements-api.txt
+!models/model.joblib

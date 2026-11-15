@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.pytest_cache/
+.ruff_cache/
+mlruns/
+mlflow-data/
+artifacts/
+logs/
+models/*.joblib
+metrics.json
+/dvc-remote/
+*.egg-info/
+.idea/
+.vscode/
+airflow-home/

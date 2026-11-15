@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-inference-config
+  namespace: mlops-agent
+  labels:
+    app: ml-inference
+data:
+  # Non-sensitive configuration only (secrets must never be stored here)
+  MODEL_PATH: /app/models/model.joblib
+  MODEL_VERSION: "1"
+  DATASET_VERSION: data-v1
+  LOG_LEVEL: INFO
