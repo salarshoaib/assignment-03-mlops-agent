@@ -120,13 +120,34 @@ class MlflowService:
                 "interpretation": "Best by the chosen metric among recent runs. A top metric alone does NOT make a model "
                                   "production-ready; review readiness_checks and caveats."}
 
+    def _aliases_by_version(self, model_name: str) -> dict[str, list[str]]:
+        """Map version -> aliases via the registered model.
+
+        MLflow 2.x leaves ``ModelVersion.aliases`` empty on versions returned by
+        ``search_model_versions``; the authoritative alias map lives on the model.
+        """
+        try:
+            rm = self.client.get_registered_model(model_name)
+        except Exception:  # noqa: BLE001 - registry is optional
+            return {}
+        out: dict[str, list[str]] = {}
+        for alias, version in (getattr(rm, "aliases", None) or {}).items():
+            out.setdefault(str(version), []).append(alias)
+        return out
+
     def _versions_for_run(self, run_id: str) -> list[dict[str, Any]]:
         try:
             mvs = self.client.search_model_versions(f"run_id='{run_id}'")
         except Exception:  # noqa: BLE001 - registry is optional
             return []
-        return [{"name": mv.name, "version": mv.version, "aliases": list(getattr(mv, "aliases", []) or []),
-                 "status": getattr(mv, "status", None)} for mv in mvs]
+        out = []
+        for mv in mvs:
+            aliases = list(getattr(mv, "aliases", []) or [])
+            if not aliases:
+                aliases = self._aliases_by_version(mv.name).get(str(mv.version), [])
+            out.append({"name": mv.name, "version": mv.version, "aliases": aliases,
+                        "status": getattr(mv, "status", None)})
+        return out
 
     def _readiness(self, run: Any, versions: list[dict]) -> tuple[dict[str, Any], list[str]]:
         m, tags = run.data.metrics, run.data.tags
@@ -194,9 +215,12 @@ class MlflowService:
         out = []
         for m in models:
             versions = self.client.search_model_versions(f"name='{m.name}'")
-            out.append({"name": m.name, "aliases": dict(getattr(m, "aliases", {}) or {}), "versions": [
+            aliases = dict(getattr(m, "aliases", {}) or {})
+            by_version = self._aliases_by_version(m.name)
+            out.append({"name": m.name, "aliases": aliases, "versions": [
                 {"version": v.version, "run_id": v.run_id, "status": v.status,
-                 "aliases": list(getattr(v, "aliases", []) or []), "created": _iso(v.creation_timestamp)}
+                 "aliases": list(getattr(v, "aliases", []) or []) or by_version.get(str(v.version), []),
+                 "created": _iso(v.creation_timestamp)}
                 for v in sorted(versions, key=lambda v: int(v.version), reverse=True)]})
         return {"count": len(out), "models": out}
 
