@@ -9,6 +9,14 @@ confirmation, timeouts, structured logs) -> DVC | MLflow | Airflow | Kubernetes 
 ```
 See `architecture.md` for the full design and `docs/` for demo scripts, failure injections and the report template.
 
+## Submission
+
+* **Technical report:** [`docs/REPORT.md`](docs/REPORT.md) — architecture, tool permissions, all evidence
+  screenshots inline, the five tested conversations with tool traces, failure investigations, limitations.
+* **Verification checklist:** [`docs/CHECKLIST.md`](docs/CHECKLIST.md) — every step of the brief, checked.
+* **Evidence:** `screenshots/` (26 screenshots) and `screenshots/evidence/*.json` (raw tool traces).
+
+
 ## 0. Prerequisites
 Python 3.11+, Git, Docker Desktop, `kubectl`, `kind` (or minikube). Optional: Anthropic API key
 (without it the agent uses a deterministic offline planner - same tools, same evidence rules).
